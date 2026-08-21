@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prototipo Agua</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            border-radius: 0 !important;
+            font-family: monospace, Courier, sans-serif;
+        }
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            margin: 0;
+            padding: 8px;
+        }
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            border: 2px solid #ffffff;
+            padding: 12px;
+            background-color: #000000;
+        }
+        h2 {
+            text-align: center;
+            color: #ffffff;
+            margin: 0 0 12px 0;
+            font-size: 20px;
+            border-bottom: 2px solid #ffffff;
+            padding-bottom: 6px;
+            text-transform: uppercase;
+        }
+        
+        /* Títulos de sección con color */
+        h3 {
+            margin: 16px 0 8px 0;
+            padding: 4px;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        .titulo-entregas {
+            background-color: #0284c7;
+            color: #ffffff;
+        }
+        .titulo-devoluciones {
+            background-color: #7c3aed;
+            color: #ffffff;
+        }
+        .titulo-pedidos {
+            background-color: #16a34a;
+            color: #ffffff;
+        }
+        .titulo-cobro {
+            background-color: #d97706;
+            color: #ffffff;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 2px 0;
+            font-size: 12px;
+            color: #ffffff;
+        }
+        select, input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ffffff;
+            background-color: #000000;
+            color: #ffffff;
+            font-size: 14px;
+        }
+        select:disabled {
+            border-color: #555555;
+            color: #555555;
+        }
+
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .stepper {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        .stepper button {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: #000000;
+            border: 1px solid #ffffff;
+            color: #ffffff;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .stepper button:active {
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .stepper input {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #ffffff;
+            padding: 20px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: #000000;
+            color: #ffffff;
+            padding: 12px;
+            border: 2px solid #ffffff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 16px;
+            text-transform: uppercase;
+        }
+        .btn-submit:hover, .btn-submit:active {
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .btn-submit:disabled {
+            border-color: #555555;
+            color: #555555;
+            cursor: not-allowed;
+            background-color: #000000;
+        }
+
+        .otros-control {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .otros-cant {
+            width: 48px !important;
+            text-align: center;
+            padding: 8px 2px !important;
+        }
+        .btn-add-item {
+            background: #000000;
+            color: #ffffff;
+            border: 1px solid #ffffff;
+            padding: 8px 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-add-item:active {
+            background: #ffffff;
+            color: #000000;
+        }
+        .tag-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+        .tag {
+            background: #000000;
+            border: 1px solid #ffffff;
+            padding: 2px 6px;
+            font-size: 11px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tag span.remove {
+            color: #ffffff;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Prototipo Agua</h2>
+    
+    <div id="loader" class="loading">Cargando datos...</div>
+
+    <form id="appForm" style="display:none;">
+        <label for="reparto">1. Reparto</label>
+        <select id="reparto" required>
+            <option value="">-- Seleccionar Reparto --</option>
+        </select>
+
+        <label for="zona">2. Zona</label>
+        <select id="zona" disabled required>
+            <option value="">-- Elija reparto --</option>
+        </select>
+
+        <label for="cliente">3. Cliente</label>
+        <select id="cliente" disabled required>
+            <option value="">-- Elija zona --</option>
+        </select>
+
+        <!-- SECCIÓN ENTREGAS -->
+        <h3 class="titulo-entregas">ENTREGAS (CANTIDAD)</h3>
+
+        <label>Bidón x6</label>
+        <div class="stepper">
+            <button type="button" onclick="changeVal('ent6l', -1)">-</button>
+            <input type="number" id="ent6l" value="0" min="0" oninput="recalcularCobro()">
+            <button type="button" onclick="changeVal('ent6l', 1)">+</button>
+        </div>
+
+        <label>Bidón x12</label>
+        <div class="stepper">
+            <button type="button" onclick="changeVal('ent12l', -1)">-</button>
+            <input type="number" id="ent12l" value="0" min="0" oninput="recalcularCobro()">
+            <button type="button" onclick="changeVal('ent12l', 1)">+</button>
+        </div>
+
+        <label>Bidón x20</label>
+        <div class="stepper">
+            <button type="button" onclick="changeVal('ent20l', -1)">-</button>
+            <input type="number" id="ent20l" value="0" min="0" oninput="recalcularCobro()">
+            <button type="button" onclick="changeVal('ent20l', 1)">+</button>
+        </div>
+        
+        <label>Sifón de Soda</label>
+        <div class="stepper">
+            <button type="button" onclick="changeVal('entSifon', -1)">-</button>
+            <input type="number" id="entSifon" value="0" min="0" oninput="recalcularCobro()">
+            <button type="button" onclick="changeVal('entSifon', 1)">+</button>
+        </div>
+
+        <label>Agua Saborizada</label>
+        <div class="stepper">
+            <button type="button" onclick="changeVal('entAguasS', -1)">-</button>
+            <input type="number" id="entAguasS" value="0" min="0" oninput="recalcularCobro()">
+            <button type="button" onclick="changeVal('entAguasS', 1)">+</button>
+        </div>
+
+        <label>SodaStream</label>
+        <div class="stepper">
+            <button type="button" onclick="changeVal('entSodastream', -1)">-</button>
+            <input type="number" id="entSodastream" value="0" min="0" oninput="recalcularCobro()">
+            <button type="button" onclick="changeVal('entSodastream', 1)">+</button>
+        </div>
+
+        <label>Otros (Entregados)</label>
+        <div class="otros-control">
+            <input type="number" id="cantEntOtros" class="otros-cant" value="1" min="1">
+            <select id="selectEntOtros"></select>
+            <button type="button" class="btn-add-item" onclick="agregarItemOtros('ent')">+</button>
+        </div>
+        <div id="tagsEntOtros" class="tag-container"></div>
+
+        <!-- SECCIÓN DEVOLUCIONES -->
+        <h3 class="titulo-devoluciones">DEVOLUCIÓN (ENVASES)</h3>
+
+        <label>Bidón x6</label>
+        <div class="stepper">
+            <button type="button" onclick="changeVal('dev6l', -1)">-</button>
+            <input type="number" id="dev6l" value="0" min="0">
+            <button type="button" onclick="changeVal('dev6l', 1)">+</button>
+        </div>
+
+        <label>Bidón x12</label>
+        <div class="stepper">
+            <button type="button" onclick="changeVal('dev12l', -1)">-</button>
+            <input type="number" id="dev12l" value="0" min="0">
+            <button type="button" onclick="changeVal('dev12l', 1)">+</button>
+        </div>
+
+        <label>Bidón x20</label>
+        <div class="stepper">
+            <button type="button" onclick="changeVal('dev20l', -1)">-</button>
+            <input type="number" id="dev20l" value="0" min="0">
+            <button type="button" onclick="changeVal('dev20l', 1)">+</button>
+        </div>
+        
+        <label>Sifón de Soda</label>
+        <div class="stepper">
+            <button type="button" onclick="changeVal('devSifon', -1)">-</button>
+            <input type="number" id="devSifon" value="0" min="0">
+            <button type="button" onclick="changeVal('devSifon', 1)">+</button>
+        </div>
+
+        <label>Agua Saborizada</label>
+        <div class="stepper">
+            <button type="button" onclick="changeVal('devAguasS', -1)">-</button>
+            <input type="number" id="devAguasS" value="0" min="0">
+            <button type="button" onclick="changeVal('devAguasS', 1)">+</button>
+        </div>
+
+        <label>SodaStream</label>
+        <div class="stepper">
+            <button type="button" onclick="changeVal('devSodastream', -1)">-</button>
+            <input type="number" id="devSodastream" value="0" min="0">
+            <button type="button" onclick="changeVal('devSodastream', 1)">+</button>
+        </div>
+
+        <label>Otros devueltos</label>
+        <div class="otros-control">
+            <input type="number" id="cantDevOtros" class="otros-cant" value="1" min="1">
+            <select id="selectDevOtros"></select>
+            <button type="button" class="btn-add-item" onclick="agregarItemOtros('dev')">+</button>
+        </div>
+        <div id="tagsDevOtros" class="tag-container"></div>
+
+        <!-- SECCIÓN COBRO -->
+        <h3 class="titulo-cobro">COBRO</h3>
+        <div class="grid-3">
+            <div>
+                <label for="pagoTransferencia">Transf.</label>
+                <input type="number" id="pagoTransferencia" value="0" min="0" oninput="recalcularCobro()">
+            </div>
+            <div>
+                <label for="pagoEfectivo">Efectivo</label>
+                <input type="number" id="pagoEfectivo" value="0" min="0" oninput="recalcularCobro()">
+            </div>
+            <div>
+                <label for="aCuenta">A cuenta</label>
+                <input type="number" id="aCuenta" value="0" min="0">
+            </div>
+        </div>
+
+        <!-- SECCIÓN PEDIDO PRÓXIMA SEMANA -->
+        <h3 class="titulo-pedidos">PEDIDO SEMANA SIGUIENTE</h3>
+
+        <label>Bidón x6</label>
+        <div class="stepper">
+            <button type="button" onclick="changeVal('ped6l', -1)">-</button>
+            <input type="number" id="ped6l" value="0" min="0">
+            <button type="button" onclick="changeVal('ped6l', 1)">+</button>
+        </div>
+
+        <label>Bidón x12</label>
+        <div class="stepper">
+            <button type="button" onclick="changeVal('ped12l', -1)">-</button>
+            <input type="number" id="ped12l" value="0" min="0">
+            <button type="button" onclick="changeVal('ped12l', 1)">+</button>
+        </div>
+
+        <label>Bidón x20</label>
+        <div class="stepper">
+            <button type="button" onclick="changeVal('ped20l', -1)">-</button>
+            <input type="number" id="ped20l" value="0" min="0">
+            <button type="button" onclick="changeVal('ped20l', 1)">+</button>
+        </div>
+        
+        <label>Sifón de Soda</label>
+        <div class="stepper">
+            <button type="button" onclick="changeVal('pedSifon', -1)">-</button>
+            <input type="number" id="pedSifon" value="0" min="0">
+            <button type="button" onclick="changeVal('pedSifon', 1)">+</button>
+        </div>
+
+        <label>Agua Saborizada</label>
+        <div class="stepper">
+            <button type="button" onclick="changeVal('pedAguasS', -1)">-</button>
+            <input type="number" id="pedAguasS" value="0" min="0">
+            <button type="button" onclick="changeVal('pedAguasS', 1)">+</button>
+        </div>
+
+        <label>SodaStream</label>
+        <div class="stepper">
+            <button type="button" onclick="changeVal('pedSodastream', -1)">-</button>
+            <input type="number" id="pedSodastream" value="0" min="0">
+            <button type="button" onclick="changeVal('pedSodastream', 1)">+</button>
+        </div>
+
+        <label>Otros pedidos</label>
+        <div class="otros-control">
+            <input type="number" id="cantPedOtros" class="otros-cant" value="1" min="1">
+            <select id="selectPedOtros"></select>
+            <button type="button" class="btn-add-item" onclick="agregarItemOtros('ped')">+</button>
+        </div>
+        <div id="tagsPedOtros" class="tag-container"></div>
+
+        <button type="submit" id="btnSubmit" class="btn-submit">ENVIAR A PLANILLA</button>
+    </form>
+</div>
+
+<script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbz5Pk3XMN9jwO6SnQ8HIIzw5IWvR0o6Yel-2AYSpER45vUBGl96I7a5_Dc4_8_ig9-n/exec";
+    
+    const OPCIONES_OTROS = [
+        "Dispenser clásico",
+        "Dispenser frío calor",
+        "Petaca 1",
+        "Petaca 2",
+        "Jugo en polvo 1",
+        "Jugo en polvo 2"
+    ];
+
+    let itemsOtros = { ent: [], dev: [], ped: [] };
+    let baseClientes = [];
+    let mapaPrecios = {};
+
+    function normalizarTexto(txt) {
+        return (txt || "")
+            .toString()
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .trim();
+    }
+
+    function obtenerPrecio(clave) {
+        const buscada = normalizarTexto(clave);
+        for (const [prod, precio] of Object.entries(mapaPrecios)) {
+            const actual = normalizarTexto(prod);
+            if (actual === buscada || actual.includes(buscada) || buscada.includes(actual)) {
+                return parseFloat(precio) || 0;
+            }
+        }
+        return 0;
+    }
+
+    function changeVal(id, delta) {
+        const input = document.getElementById(id);
+        let val = parseInt(input.value) || 0;
+        val += delta;
+        if (val < 0) val = 0;
+        input.value = val;
+        recalcularCobro();
+    }
+
+    function inicializarDesplegablesOtros() {
+        ['selectEntOtros', 'selectDevOtros', 'selectPedOtros'].forEach(id => {
+            const el = document.getElementById(id);
+            el.innerHTML = '<option value="">-- Seleccionar producto --</option>';
+            OPCIONES_OTROS.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item;
+                opt.textContent = item;
+                el.appendChild(opt);
+            });
+        });
+    }
+
+    function agregarItemOtros(tipo) {
+        const mapSelect = { ent: 'selectEntOtros', dev: 'selectDevOtros', ped: 'selectPedOtros' };
+        const mapCant = { ent: 'cantEntOtros', dev: 'cantDevOtros', ped: 'cantPedOtros' };
+        
+        const select = document.getElementById(mapSelect[tipo]);
+        const cantInput = document.getElementById(mapCant[tipo]);
+        
+        const val = select.value;
+        const cant = parseInt(cantInput.value) || 1;
+        if (!val) return;
+
+        itemsOtros[tipo].push({ cant: cant, producto: val });
+        select.value = "";
+        cantInput.value = 1;
+        
+        renderizarTags(tipo);
+        if (tipo === 'ent') recalcularCobro();
+    }
+
+    function removerItemOtros(tipo, index) {
+        itemsOtros[tipo].splice(index, 1);
+        renderizarTags(tipo);
+        if (tipo === 'ent') recalcularCobro();
+    }
+
+    function renderizarTags(tipo) {
+        const mapContainer = { ent: 'tagsEntOtros', dev: 'tagsDevOtros', ped: 'tagsPedOtros' };
+        const container = document.getElementById(mapContainer[tipo]);
+        container.innerHTML = "";
+
+        itemsOtros[tipo].forEach((item, index) => {
+            const tag = document.createElement('div');
+            tag.className = 'tag';
+            tag.innerHTML = `${item.cant}x ${item.producto} <span class="remove" onclick="removerItemOtros('${tipo}', ${index})">[X]</span>`;
+            container.appendChild(tag);
+        });
+    }
+
+    function limpiarTagsOtros() {
+        itemsOtros = { ent: [], dev: [], ped: [] };
+        renderizarTags('ent');
+        renderizarTags('dev');
+        renderizarTags('ped');
+    }
+
+    function recalcularCobro() {
+        const e6 = parseInt(document.getElementById('ent6l').value) || 0;
+        const e12 = parseInt(document.getElementById('ent12l').value) || 0;
+        const e20 = parseInt(document.getElementById('ent20l').value) || 0;
+        const eSif = parseInt(document.getElementById('entSifon').value) || 0;
+        const eAgu = parseInt(document.getElementById('entAguasS').value) || 0;
+        const eSod = parseInt(document.getElementById('entSodastream').value) || 0;
+
+        let totalEntregas = 
+            e6 * (obtenerPrecio("6") || obtenerPrecio("bidon 6")) +
+            e12 * (obtenerPrecio("12") || obtenerPrecio("bidon 12")) +
+            e20 * (obtenerPrecio("20") || obtenerPrecio("bidon 20")) +
+            eSif * (obtenerPrecio("sifon") || obtenerPrecio("soda")) +
+            eAgu * (obtenerPrecio("saborizada") || obtenerPrecio("agua s")) +
+            eSod * obtenerPrecio("sodastream");
+
+        itemsOtros.ent.forEach(item => {
+            const pUnit = obtenerPrecio(item.producto);
+            totalEntregas += item.cant * pUnit;
+        });
+
+        const pTransf = parseFloat(document.getElementById('pagoTransferencia').value) || 0;
+        const pEfect = parseFloat(document.getElementById('pagoEfectivo').value) || 0;
+
+        const aCuentaCalculado = Math.max(0, totalEntregas - (pTransf + pEfect));
+        document.getElementById('aCuenta').value = aCuentaCalculado;
+    }
+
+    function cargarClientes(mostrarAlerta = false) {
+        const urlSinCache = `${API_URL}?t=${Date.now()}`;
+        return fetch(urlSinCache, { cache: "no-store" })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    if (mostrarAlerta) alert("Error: " + data.error);
+                    return;
+                }
+                baseClientes = data.clientes || data;
+                mapaPrecios = data.precios || {};
+                poblarRepartos();
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('appForm').style.display = 'block';
+            })
+            .catch(err => {
+                document.getElementById('loader').innerText = "Error de conexión.";
+            });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        inicializarDesplegablesOtros();
+        cargarClientes(true);
+    });
+
+    const selectReparto = document.getElementById('reparto');
+    const selectZona = document.getElementById('zona');
+    const selectCliente = document.getElementById('cliente');
+
+    function poblarRepartos() {
+        const repartosUnicos = [...new Set(baseClientes.map(c => c.reparto))].filter(Boolean);
+        selectReparto.innerHTML = '<option value="">-- Seleccionar Reparto --</option>';
+        repartosUnicos.forEach(r => {
+            const opt = document.createElement('option');
+            opt.value = r;
+            opt.textContent = r;
+            selectReparto.appendChild(opt);
+        });
+    }
+
+    selectReparto.addEventListener('change', () => {
+        const repartoElegido = selectReparto.value;
+        selectZona.innerHTML = '<option value="">-- Seleccionar Zona --</option>';
+        selectCliente.innerHTML = '<option value="">-- Elija zona --</option>';
+        selectCliente.disabled = true;
+
+        if (!repartoElegido) {
+            selectZona.disabled = true;
+            return;
+        }
+
+        const zonasUnicas = [...new Set(
+            baseClientes
+                .filter(c => c.reparto === repartoElegido)
+                .map(c => c.zona)
+        )].filter(Boolean);
+
+        zonasUnicas.forEach(z => {
+            const opt = document.createElement('option');
+            opt.value = z;
+            opt.textContent = z;
+            selectZona.appendChild(opt);
+        });
+
+        selectZona.disabled = false;
+    });
+
+    selectZona.addEventListener('change', () => {
+        const repartoElegido = selectReparto.value;
+        const zonaElegida = selectZona.value;
+
+        selectCliente.innerHTML = '<option value="">-- Seleccionar Cliente --</option>';
+
+        if (!zonaElegida) {
+            selectCliente.disabled = true;
+            return;
+        }
+
+        const clientesFiltrados = baseClientes.filter(
+            c => c.reparto === repartoElegido && c.zona === zonaElegida
+        );
+
+        clientesFiltrados.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = JSON.stringify({ fila: c.fila, nombre: c.nombre });
+            
+            const prefijo = c.pintado ? "[*] " : "[ ] ";
+            opt.textContent = `${prefijo}${c.nombre}` + (c.saldoActual ? ` ($${c.saldoActual})` : ' ($0)');
+
+            if (!c.pintado) {
+                opt.style.color = '#777777';
+            } else {
+                opt.style.color = '#ffffff';
+                opt.style.fontWeight = 'bold';
+            }
+
+            selectCliente.appendChild(opt);
+        });
+
+        selectCliente.disabled = false;
+    });
+
+    document.getElementById('appForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const btn = document.getElementById('btnSubmit');
+        btn.disabled = true;
+        btn.textContent = "ENVIANDO...";
+
+        const clienteObj = JSON.parse(selectCliente.value);
+        const formatOtrosString = (lista) => lista.map(i => `${i.cant}x ${i.producto}`).join(', ');
+
+        const payload = {
+            fila: clienteObj.fila,
+            nombre: clienteObj.nombre,
+            
+            pagoTransferencia: parseFloat(document.getElementById('pagoTransferencia').value) || 0,
+            pagoEfectivo: parseFloat(document.getElementById('pagoEfectivo').value) || 0,
+            aCuenta: parseFloat(document.getElementById('aCuenta').value) || 0,
+
+            entregas6l: parseInt(document.getElementById('ent6l').value) || 0,
+            entregas12l: parseInt(document.getElementById('ent12l').value) || 0,
+            entregas20l: parseInt(document.getElementById('ent20l').value) || 0,
+            entregasSifon: parseInt(document.getElementById('entSifon').value) || 0,
+            entregasAguasS: parseInt(document.getElementById('entAguasS').value) || 0,
+            entregasSodastream: parseInt(document.getElementById('entSodastream').value) || 0,
+            entregasOtros: formatOtrosString(itemsOtros.ent),
+            
+            dev6l: parseInt(document.getElementById('dev6l').value) || 0,
+            dev12l: parseInt(document.getElementById('dev12l').value) || 0,
+            dev20l: parseInt(document.getElementById('dev20l').value) || 0,
+            devSifon: parseInt(document.getElementById('devSifon').value) || 0,
+            devAguasS: parseInt(document.getElementById('devAguasS').value) || 0,
+            devSodastream: parseInt(document.getElementById('devSodastream').value) || 0,
+            devOtros: formatOtrosString(itemsOtros.dev),
+            
+            ped6l: parseInt(document.getElementById('ped6l').value) || 0,
+            ped12l: parseInt(document.getElementById('ped12l').value) || 0,
+            ped20l: parseInt(document.getElementById('ped20l').value) || 0,
+            pedSifon: parseInt(document.getElementById('pedSifon').value) || 0,
+            pedAguasS: parseInt(document.getElementById('pedAguasS').value) || 0,
+            pedSodastream: parseInt(document.getElementById('pedSodastream').value) || 0,
+            pedOtros: formatOtrosString(itemsOtros.ped)
+        };
+
+        fetch(API_URL, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(res => {
+            if (res.status === 'success') {
+                alert("Guardado");
+                document.getElementById('appForm').reset();
+                limpiarTagsOtros();
+                selectZona.disabled = true;
+                selectZona.innerHTML = '<option value="">-- Elija reparto --</option>';
+                selectCliente.disabled = true;
+                selectCliente.innerHTML = '<option value="">-- Elija zona --</option>';
+                cargarClientes(false);
+            } else {
+                alert("Error: " + res.message);
+            }
+        })
+        .catch(err => {
+            alert("Error: " + err);
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.textContent = "ENVIAR A PLANILLA";
+        });
+    });
+</script>
+
+</body>
+</html>
