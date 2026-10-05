@@ -394,16 +394,9 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbz5Pk3XMN9jwO6SnQ8HIIzw5IWvR0o6Yel-2AYSpER45vUBGl96I7a5_Dc4_8_ig9-n/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbxBVU3SMTghwdjlL3jVsTodjHjqSOgUDI4kGTZ_xjX_aPer7uaBBG3_m-uPv4QyZakVlA/exec";
     
-    const OPCIONES_OTROS = [
-        "Dispenser clásico",
-        "Dispenser frío calor",
-        "Petaca 1",
-        "Petaca 2",
-        "Jugo en polvo 1",
-        "Jugo en polvo 2"
-    ];
+    let OPCIONES_OTROS = [];
 
     let itemsOtros = { ent: [], dev: [], ped: [] };
     let baseClientes = [];
@@ -535,6 +528,12 @@
                 }
                 baseClientes = data.clientes || data;
                 mapaPrecios = data.precios || {};
+                
+                if (data.otros && data.otros.length > 0) {
+                    OPCIONES_OTROS = data.otros;
+                    inicializarDesplegablesOtros();
+                }
+
                 poblarRepartos();
                 document.getElementById('loader').style.display = 'none';
                 document.getElementById('appForm').style.display = 'block';
